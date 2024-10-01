@@ -303,12 +303,12 @@ class DataModule(LightningDataModule):
 def main(args):
 
     try:
-        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/level2-objectdetection-cv-01/detectron2/datasets/train.json', '/data/ephemeral/level2-objectdetection-cv-01/detectron2/datasets')
+        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/level2-objectdetection-cv-01/dataset/train.json', '/data/ephemeral/level2-objectdetection-cv-01/dataset')
     except AssertionError:
         pass
 
     try:
-        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/level2-objectdetection-cv-01/detectron2/datasets/test.json', '/data/ephemeral/level2-objectdetection-cv-01/detectron2/datasets')
+        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/level2-objectdetection-cv-01/dataset/test.json', '/data/ephemeral/level2-objectdetection-cv-01/dataset')
     except AssertionError:
         pass
 
