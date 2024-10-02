@@ -1,0 +1,16 @@
+_BASE_: "../Base-RCNN-FPN_TRASH.yaml"
+MODEL:
+  WEIGHTS: "https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_101_FPN_3x/137851257/model_final_f6e8b1.pkl"
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 101
+  ROI_HEADS:
+    BATCH_SIZE_PER_IMAGE: 128
+    NUM_CLASSES: 10
+    SCORE_THRESH_TEST: 0.3
+SOLVER:
+  STEPS: (8000,12000)
+  MAX_ITER: 15000
+  GAMMA: 0.005
+  CHECKPOINT_PERIOD: 3000
+OUTPUT_DIR: '/data/ephemeral/level2-objectdetection-cv-01/output'
