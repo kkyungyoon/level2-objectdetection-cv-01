@@ -18,6 +18,8 @@ import torch
 
 import pandas as pd
 
+import albumentations as A
+
 import detectron2.utils.comm as comm
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
@@ -229,6 +231,21 @@ class TrainingModule(LightningModule):
         self._best_param_group_id = hooks.LRScheduler.get_best_param_group_id(optimizer)
         scheduler = build_lr_scheduler(self.cfg, optimizer)
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
+    
+def AlbumentationTransform(img,anno):
+    #img = 1024,1024,3 array
+    #anno = list of dict [{'iscloud':0, 'bbox':[x0,y0,w,h], 'category_id':1, 'bbox_mode':1}]
+    transform_list = [A.Rotate(limit=(-30,30),border_mode=0,p=0.5)]
+
+    if transform_list:
+        anno_df = pd.DataFrame(anno)
+        transform = A.Compose(transform_list, bbox_params=A.BboxParams(format='coco', label_fields=['labels']))
+        transformed = transform(image=img, bboxes=anno_df['bbox'].tolist(), labels=anno_df['category_id'].tolist())
+        img = transformed['image']
+        anno_df['bbox'], anno_df['category_id'] = transformed['bboxes'], transformed['labels']
+        return img, anno_df.to_dict(orient='records')
+
+    return img, anno
 
 ##### Mapper 
 def TrainMapper(dataset_dict):
@@ -243,6 +260,8 @@ def TrainMapper(dataset_dict):
     
     image, transforms = T.apply_transform_gens(transform_list, image)
     
+    image, dataset_dict['annotations'] = AlbumentationTransform(image, dataset_dict['annotations'])
+
     dataset_dict['image'] = torch.as_tensor(image.transpose(2,0,1).astype('float32'))
     
     annos = [
