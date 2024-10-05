@@ -162,22 +162,22 @@ class TrainingModule(LightningModule):
             evaluator.reset()
             self._evaluators.append(evaluator)
 
-    def on_validation_epoch_start(self, _outputs):
-        self._reset_dataset_evaluators()
+    # def on_validation_epoch_start(self, _outputs):
+    #     self._reset_dataset_evaluators()
 
-    def validation_epoch_end(self, _outputs):
-        results = self._process_dataset_evaluation_results(_outputs)
+    # def validation_epoch_end(self, _outputs):
+    #     results = self._process_dataset_evaluation_results(_outputs)
 
-        flattened_results = flatten_results_dict(results)
-        for k, v in flattened_results.items():
-            try:
-                v = float(v)
-            except Exception as e:
-                raise ValueError(
-                    "[EvalHook] eval_function should return a nested dict of float. "
-                    "Got '{}: {}' instead.".format(k, v)
-                ) from e
-        self.storage.put_scalars(**flattened_results, smoothing_hint=False)
+    #     flattened_results = flatten_results_dict(results)
+    #     for k, v in flattened_results.items():
+    #         try:
+    #             v = float(v)
+    #         except Exception as e:
+    #             raise ValueError(
+    #                 "[EvalHook] eval_function should return a nested dict of float. "
+    #                 "Got '{}: {}' instead.".format(k, v)
+    #             ) from e
+    #     self.storage.put_scalars(**flattened_results, smoothing_hint=False)
 
     def validation_step(self, batch, batch_idx: int, dataloader_idx: int = 0) -> None:
         if not isinstance(batch, List):
@@ -298,17 +298,15 @@ class DataModule(LightningDataModule):
 
 
     
-
-
 def main(args):
 
     try:
-        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/level2-objectdetection-cv-01/dataset/train.json', '/data/ephemeral/level2-objectdetection-cv-01/dataset')
+        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
     except AssertionError:
         pass
 
     try:
-        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/level2-objectdetection-cv-01/dataset/test.json', '/data/ephemeral/level2-objectdetection-cv-01/dataset')
+        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/test.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
     except AssertionError:
         pass
 
@@ -329,7 +327,8 @@ def train(cfg, args):
         # sure max_steps is met first
         "max_epochs": 10**8,
         "max_steps": cfg.SOLVER.MAX_ITER,
-        "val_check_interval": cfg.TEST.EVAL_PERIOD if cfg.TEST.EVAL_PERIOD > 0 else 10**8,
+        # "val_check_interval": cfg.TEST.EVAL_PERIOD if cfg.TEST.EVAL_PERIOD > 0 else 10**8,
+        "val_check_interval": 5,
         "num_nodes": args.num_machines,
         "gpus": args.num_gpus,
         "num_sanity_val_steps": 0,
@@ -344,6 +343,7 @@ def train(cfg, args):
     
     if args.resume:
         # resume training from checkpoint
+        # print('???????????????????????????????????')
         trainer_params["resume_from_checkpoint"] = last_checkpoint
         logger.info(f"Resuming training from checkpoint: {last_checkpoint}.")
     
@@ -371,7 +371,7 @@ def train(cfg, args):
         submission = pd.DataFrame()
         submission['PredictionString'] = pred_str_list
         submission['image_id'] = file_name_list
-        submission.to_csv(os.path.join(cfg.OUTPUT_DIR, f'submission_det.csv'), index=None)
+        submission.to_csv(os.path.join(cfg.OUTPUT_DIR, f'submission_det_test.csv'), index=None)
 
     else:
         logger.info("Running training")
