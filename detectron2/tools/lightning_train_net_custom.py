@@ -232,21 +232,35 @@ class TrainingModule(LightningModule):
         scheduler = build_lr_scheduler(self.cfg, optimizer)
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
     
-def AlbumentationTransform(img,anno):
+def AlbumentationTransform(img,anno,mode):
     #img = 1024,1024,3 array
     #anno = list of dict [{'iscloud':0, 'bbox':[x0,y0,w,h], 'category_id':1, 'bbox_mode':1}]
-    transform_list = [A.Rotate(limit=(-30,30),border_mode=0,p=0.5)]
 
-    if transform_list:
-        anno_df = pd.DataFrame(anno)
-        transform = A.Compose(transform_list, bbox_params=A.BboxParams(format='coco', label_fields=['labels']))
-        transformed = transform(image=img, bboxes=anno_df['bbox'].tolist(), labels=anno_df['category_id'].tolist())
-        img = transformed['image']
-        anno_df['bbox'], anno_df['category_id'] = transformed['bboxes'], transformed['labels']
-        return img, anno_df.to_dict(orient='records')
+    #트레인 테스트에 모두 적용되는 트랜스폼
+    transform_both = []
 
-    return img, anno
-
+    if mode == 'train':
+        #트레인 데이터에만 적용되는 트랜스폼
+        transform_list = [A.Rotate(limit=(-30,30),border_mode=0,p=0.5)]
+        transform_list = transform_both+transform_list
+        if transform_list:
+            anno_df = pd.DataFrame(anno)
+            transform = A.Compose(transform_list, bbox_params=A.BboxParams(format='coco', label_fields=['labels']))
+            transformed = transform(image=img, bboxes=anno_df['bbox'].tolist(), labels=anno_df['category_id'].tolist())
+            img = transformed['image']
+            anno_df['bbox'], anno_df['category_id'] = transformed['bboxes'], transformed['labels']
+            return img, anno_df.to_dict(orient='records')
+        return img, anno
+    elif mode == 'test':
+        # test time augmentation 테스트 에만 적용되는 트랜스폼
+        tta = []
+        tta = transform_list+tta
+        if tta:
+            transform = A.Compose(tta)
+            transformed = transform(image=img)
+            img = transformed['image']
+        return img
+    else: print('Unknown mode'); quit()
 ##### Mapper 
 def TrainMapper(dataset_dict):
     dataset_dict = copy.deepcopy(dataset_dict)
@@ -260,7 +274,7 @@ def TrainMapper(dataset_dict):
     
     image, transforms = T.apply_transform_gens(transform_list, image)
     
-    image, dataset_dict['annotations'] = AlbumentationTransform(image, dataset_dict['annotations'])
+    image, dataset_dict['annotations'] = AlbumentationTransform(image, dataset_dict['annotations'], 'train')
 
     dataset_dict['image'] = torch.as_tensor(image.transpose(2,0,1).astype('float32'))
     
@@ -289,6 +303,8 @@ def TestMapper(dataset_dict):
     dataset_dict = copy.deepcopy(dataset_dict)
     image = detection_utils.read_image(dataset_dict['file_name'], format='BGR')
     
+    image = AlbumentationTransform(image, 0, 'test')
+
     dataset_dict['image'] = image
     
     return dataset_dict
