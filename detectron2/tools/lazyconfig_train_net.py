@@ -27,6 +27,9 @@ from detectron2.engine import (
 )
 from detectron2.engine.defaults import create_ddp_model
 from detectron2.evaluation import inference_on_dataset, print_csv_format
+from detectron2.data.datasets import register_coco_instances
+from detectron2.data import MetadataCatalog
+
 from detectron2.utils import comm
 
 logger = logging.getLogger("detectron2")
@@ -111,6 +114,22 @@ def do_train(args, cfg):
 
 
 def main(args):
+
+    try:
+        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train_80.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+    except AssertionError:
+        pass
+    try:
+        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/val_20.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+    except AssertionError:
+        pass
+
+
+    MetadataCatalog.get('coco_trash_train').thing_classes = ["General trash", "Paper", "Paper pack", "Metal", 
+                                                            "Glass", "Plastic", "Styrofoam", "Plastic bag", "Battery", "Clothing"]
+
+
+
     cfg = LazyConfig.load(args.config_file)
     cfg = LazyConfig.apply_overrides(cfg, args.opts)
     default_setup(cfg, args)

@@ -297,7 +297,7 @@ class DataModule(LightningDataModule):
         return build_detection_test_loader(self.cfg, 'coco_trash_test', TestMapper) #TODO? 
 
 
-    
+
 def main(args):
 
     try:

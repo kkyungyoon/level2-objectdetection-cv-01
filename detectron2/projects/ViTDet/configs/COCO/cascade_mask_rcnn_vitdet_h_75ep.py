@@ -26,8 +26,9 @@ optimizer.params.lr_factor_func = partial(get_vit_lr_decay_rate, lr_decay_rate=0
 optimizer.params.overrides = {}
 optimizer.params.weight_decay_norm = None
 
-train.max_iter = train.max_iter * 3 // 4  # 100ep -> 75ep
-lr_multiplier.scheduler.milestones = [
-    milestone * 3 // 4 for milestone in lr_multiplier.scheduler.milestones
-]
-lr_multiplier.scheduler.num_updates = train.max_iter
+# train.max_iter = train.max_iter * 3 // 4  # 100ep -> 75ep
+# train.max_iter = 15000
+# lr_multiplier.scheduler.milestones = [
+#     milestone * 3 // 4 for milestone in lr_multiplier.scheduler.milestones
+# ]
+# lr_multiplier.scheduler.num_updates = train.max_iter

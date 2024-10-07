@@ -13,9 +13,9 @@ dataloader.train.mapper.augmentations = [
     L(T.FixedSizeCrop)(crop_size=(image_size, image_size), pad=False),
 ]
 dataloader.train.mapper.image_format = "RGB"
-dataloader.train.total_batch_size = 64
+dataloader.train.total_batch_size = 2
 # recompute boxes due to cropping
-dataloader.train.mapper.recompute_boxes = True
+# dataloader.train.mapper.recompute_boxes = True
 
 dataloader.test.mapper.augmentations = [
     L(T.ResizeShortestEdge)(short_edge_length=image_size, max_size=image_size),

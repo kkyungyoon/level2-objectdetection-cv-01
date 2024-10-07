@@ -28,11 +28,41 @@ from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.solver.build import maybe_add_gradient_clipping
 from detectron2.data.datasets import register_coco_instances
 
+from detectron2.modeling import build_model
+import logging
+
 
 class Trainer(DefaultTrainer):
     """
     Extension of the Trainer class adapted to DETR.
     """
+    @classmethod
+    def build_model(cls, cfg):
+        """
+        Returns:
+            torch.nn.Module:
+
+        It now calls :func:`detectron2.modeling.build_model`.
+        Overwrite it if you'd like a different model.
+        """
+        model = build_model(cfg)
+
+        ######################
+        for param in model.parameters():
+            param.requires_grad = False
+
+        for param in model.detr.transformer.decoder.parameters():
+            param.requires_grad = True
+        
+        for param in model.detr.transformer.encoder.layers[5].parameters():
+            param.requires_grad = True
+
+        #######################
+        
+        logger = logging.getLogger(__name__)
+        logger.info("Model:\n{}".format(model))
+
+        return model
 
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
@@ -120,14 +150,27 @@ def setup(args):
 def main(args):
 
 
+    # try:
+    #     register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+    # except AssertionError:
+    #     pass
+    # try:
+    #     register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/test.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+    # except AssertionError:
+    #     pass
+
+    # wandb.init(project='trash object detection',entity='tayoung1005aitech',config=args,reinit=True)
+
+
     try:
-        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train_80.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
     except AssertionError:
         pass
     try:
-        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/test.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/val_20.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
     except AssertionError:
         pass
+
 
     MetadataCatalog.get('coco_trash_train').thing_classes = ["General trash", "Paper", "Paper pack", "Metal", 
                                                             "Glass", "Plastic", "Styrofoam", "Plastic bag", "Battery", "Clothing"]
