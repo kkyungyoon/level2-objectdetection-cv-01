@@ -24,7 +24,7 @@ dataloader.train = L(build_detection_train_loader)(
             ),
             L(T.RandomFlip)(horizontal=True),
         ],
-        image_format="BGR",
+        # image_format="BGR",
         # use_instance_mask=True,
     ),
     total_batch_size=8,

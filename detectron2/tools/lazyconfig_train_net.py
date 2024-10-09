@@ -32,6 +32,11 @@ from detectron2.data import MetadataCatalog
 
 from detectron2.utils import comm
 
+import copy
+# from detectron2.data import detection_utils,build_detection_train_loader
+
+
+
 logger = logging.getLogger("detectron2")
 
 
@@ -74,6 +79,10 @@ def do_train(args, cfg):
     optim = instantiate(cfg.optimizer)
 
     train_loader = instantiate(cfg.dataloader.train)
+    #######
+
+    # train_loader = build_detection_train_loader(cfg, mapper=TrainMapper)
+
 
     model = create_ddp_model(model, **cfg.train.ddp)
     trainer = (AMPTrainer if cfg.train.amp.enabled else SimpleTrainer)(model, train_loader, optim)
@@ -113,6 +122,7 @@ def do_train(args, cfg):
     trainer.train(start_iter, cfg.train.max_iter)
 
 
+    
 def main(args):
 
     try:
@@ -131,6 +141,9 @@ def main(args):
 
 
     cfg = LazyConfig.load(args.config_file)
+
+    # cfg.dataloader.train.mapper = TrainMapper
+
     cfg = LazyConfig.apply_overrides(cfg, args.opts)
     default_setup(cfg, args)
 
