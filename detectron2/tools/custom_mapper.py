@@ -8,6 +8,7 @@ import torch
 from detectron2.structures import BoxMode
 import cv2
 import numpy as np
+import albumentations as A
 
 
 class AnnotationBasedCenterCropAndResize:
@@ -67,36 +68,103 @@ class AnnotationBasedCenterCropAndResize:
         return image, annotations
 
 
+# class CustomTrainMapper:
+
+#     def __init__(self,image_format):
+
+#         self.image_format = image_format
+    
+#     def __call__(self, dataset_dict):
+    
+#         dataset_dict = copy.deepcopy(dataset_dict)
+#         image = detection_utils.read_image(dataset_dict['file_name'], format=self.image_format)
+        
+#         transform_list = [
+#             T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
+#             T.RandomBrightness(0.8, 1.8),
+#             T.RandomContrast(0.6, 1.3)
+#         ]
+#         crop_resize = AnnotationBasedCenterCropAndResize()
+#         image, _ = crop_resize.apply(image, dataset_dict['annotations'])
+
+#         image, transforms = T.apply_transform_gens(transform_list, image)
+        
+#         dataset_dict['image'] = torch.as_tensor(image.transpose(2,0,1).astype('float32'))
+        
+#         annos = [
+#             detection_utils.transform_instance_annotations(obj, transforms, image.shape[:2])
+#             for obj in dataset_dict.pop('annotations')
+#             if obj.get('iscrowd', 0) == 0
+#         ]
+        
+#         instances = detection_utils.annotations_to_instances(annos, image.shape[:2])
+#         dataset_dict['instances'] = detection_utils.filter_empty_instances(instances)
+        
+#         return dataset_dict
+
 class CustomTrainMapper:
 
     def __init__(self,image_format):
 
         self.image_format = image_format
+
+        
+        self.A_transform = A.Compose(
+            [A.ElasticTransform(p=0.5, alpha=120, sigma=120 * 0.05, alpha_affine=120 * 0.03),
+            # A.VerticalFlip(p=0.5),  # Detectron2의 RandomFlip 대체 (vertical flip)
+            # A.RandomBrightnessContrast(brightness_limit=(0.8, 1.8), contrast_limit=(0.6, 1.3), p=1.0)  # 밝기 및 대비 변환
+             ],
+            bbox_params=A.BboxParams(format='coco', label_fields=['category_ids'])
+        )
+
+
+        # self.transform_list = [
+        #     T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
+        #     T.RandomBrightness(0.8, 1.8),
+        #     T.RandomContrast(0.6, 1.3)
+        # ]
+
     
     def __call__(self, dataset_dict):
     
         dataset_dict = copy.deepcopy(dataset_dict)
         image = detection_utils.read_image(dataset_dict['file_name'], format=self.image_format)
         
-        transform_list = [
-            T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
-            T.RandomBrightness(0.8, 1.8),
-            T.RandomContrast(0.6, 1.3)
-        ]
-        crop_resize = AnnotationBasedCenterCropAndResize()
-        image, _ = crop_resize.apply(image, dataset_dict['annotations'])
+        
+        # COCO 형식의 Bounding Box (x, y, w, h) 가져오기
+        bboxes = [obj["bbox"] for obj in dataset_dict['annotations']]
+        category_ids = [obj["category_id"] for obj in dataset_dict['annotations']]  # 클래스 ID 추출
 
-        image, transforms = T.apply_transform_gens(transform_list, image)
+        # Albumentations 변환 적용 (ElasticTransform, Flip, Brightness, Contrast)
+        transformed = self.A_transform(image=image, bboxes=bboxes, category_ids=category_ids)
+
+        # 변환된 이미지와 bbox 및 클래스 ID 가져오기
+        image = transformed['image']
+        transformed_bboxes = transformed['bboxes']
+
+
+        # image, transforms = T.apply_transform_gens(self.transform_list, image)
         
         dataset_dict['image'] = torch.as_tensor(image.transpose(2,0,1).astype('float32'))
         
-        annos = [
-            detection_utils.transform_instance_annotations(obj, transforms, image.shape[:2])
-            for obj in dataset_dict.pop('annotations')
-            if obj.get('iscrowd', 0) == 0
-        ]
+        # annos = [
+        #     detection_utils.transform_instance_annotations(obj, transforms, image.shape[:2])
+        #     for obj in dataset_dict.pop('annotations')
+        #     if obj.get('iscrowd', 0) == 0
+        # ]
+
+        annos = []
+        for bbox, category_id in zip(transformed_bboxes, category_ids):
+            obj = {
+                "bbox": bbox,
+                "bbox_mode": BoxMode.XYWH_ABS,  # COCO 형식: (x, y, w, h)
+                "category_id": category_id,
+            }
+            annos.append(obj)
+
         
         instances = detection_utils.annotations_to_instances(annos, image.shape[:2])
         dataset_dict['instances'] = detection_utils.filter_empty_instances(instances)
         
         return dataset_dict
+

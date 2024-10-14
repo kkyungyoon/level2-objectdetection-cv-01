@@ -47,7 +47,7 @@ import detectron2.data.transforms as T
 
 
 
-def build_evaluator(cls, cfg, dataset_name, output_folder=None):
+def build_evaluator(cfg, dataset_name, output_folder=None):
     if output_folder is None:
         os.makedirs('./output_eval', exist_ok = True)
         output_folder = './output_eval'
@@ -135,6 +135,10 @@ class TrainingModule(LightningModule):
 
     def training_step_end(self, training_step_outpus):
         self.data_start = time.perf_counter()
+
+        if self.storage.iter % self.cfg.SOLVER.CHECKPOINT_PERIOD == 0:
+            self.checkpointer.save(f"model_{self.storage.iter}")
+
         return training_step_outpus
 
     def training_epoch_end(self, training_step_outputs):
@@ -160,26 +164,27 @@ class TrainingModule(LightningModule):
     def _reset_dataset_evaluators(self):
         self._evaluators = []
         for dataset_name in self.cfg.DATASETS.TEST:
+            # print("???????????????????????????????????????????????????",dataset_name)
             evaluator = build_evaluator(self.cfg, dataset_name)
             evaluator.reset()
             self._evaluators.append(evaluator)
 
-    # def on_validation_epoch_start(self, _outputs):
-    #     self._reset_dataset_evaluators()
+    def on_validation_epoch_start(self,):
+        self._reset_dataset_evaluators()
 
-    # def validation_epoch_end(self, _outputs):
-    #     results = self._process_dataset_evaluation_results(_outputs)
+    def validation_epoch_end(self, _outputs):
+        results = self._process_dataset_evaluation_results()
 
-    #     flattened_results = flatten_results_dict(results)
-    #     for k, v in flattened_results.items():
-    #         try:
-    #             v = float(v)
-    #         except Exception as e:
-    #             raise ValueError(
-    #                 "[EvalHook] eval_function should return a nested dict of float. "
-    #                 "Got '{}: {}' instead.".format(k, v)
-    #             ) from e
-    #     self.storage.put_scalars(**flattened_results, smoothing_hint=False)
+        flattened_results = flatten_results_dict(results)
+        for k, v in flattened_results.items():
+            try:
+                v = float(v)
+            except Exception as e:
+                raise ValueError(
+                    "[EvalHook] eval_function should return a nested dict of float. "
+                    "Got '{}: {}' instead.".format(k, v)
+                ) from e
+        self.storage.put_scalars(**flattened_results, smoothing_hint=False)
 
     def validation_step(self, batch, batch_idx: int, dataloader_idx: int = 0) -> None:
         if not isinstance(batch, List):
@@ -307,8 +312,10 @@ def ValMapper(dataset_dict):
     dataset_dict = copy.deepcopy(dataset_dict)
     image = detection_utils.read_image(dataset_dict['file_name'], format='BGR')
     
-    dataset_dict['image'] = image
+    # dataset_dict['image'] = image
     
+    dataset_dict['image'] = torch.as_tensor(image.transpose(2,0,1).astype('float32'))
+
     return dataset_dict
 
 def TestMapper(dataset_dict):
@@ -349,12 +356,12 @@ class DataModule(LightningDataModule):
 def main(args):
 
     try:
-        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/dataset/train.json', '/data/ephemeral/home/level2-objectdetection-cv-01/dataset')
     except AssertionError:
         pass
 
     try:
-        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/test.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/dataset/test.json', '/data/ephemeral/home/level2-objectdetection-cv-01/dataset')
     except AssertionError:
         pass
 
@@ -375,8 +382,8 @@ def train(cfg, args):
         # sure max_steps is met first
         "max_epochs": 10**8,
         "max_steps": cfg.SOLVER.MAX_ITER,
-        # "val_check_interval": cfg.TEST.EVAL_PERIOD if cfg.TEST.EVAL_PERIOD > 0 else 10**8,
-        "val_check_interval": 5,
+        "val_check_interval": cfg.TEST.EVAL_PERIOD if cfg.TEST.EVAL_PERIOD > 0 else 10**8,
+        # "val_check_interval": cfg.SOLVER.EVAL_PERIOD ,
         "num_nodes": args.num_machines,
         "gpus": args.num_gpus,
         "num_sanity_val_steps": 0,
