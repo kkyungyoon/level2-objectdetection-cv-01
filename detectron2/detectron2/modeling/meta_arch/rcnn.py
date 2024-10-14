@@ -53,7 +53,11 @@ class GeneralizedRCNN(nn.Module):
             vis_period: the period to run visualization. Set to 0 to disable.
         """
         super().__init__()
+        # print("????????????")
+        
         self.backbone = backbone
+        # print(backbone)
+        # raise ValueError('where........')
         self.proposal_generator = proposal_generator
         self.roi_heads = roi_heads
 
