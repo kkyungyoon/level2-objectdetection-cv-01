@@ -241,7 +241,17 @@ def AlbumentationTransform(img,anno,mode):
 
     if mode == 'train':
         #트레인 데이터에만 적용되는 트랜스폼
-        transform_list = [A.Rotate(limit=(-30,30),border_mode=0,p=0.5)]
+        rotation = A.OneOf([
+                    A.NoOp(p=1),
+                    A.Rotate(limit=(90, 90), p=1),
+                    A.Rotate(limit=(180, 180), p=1),
+                    A.Rotate(limit=(270, 270), p=1),
+                ], p=1.0)
+        flip = A.OneOf([
+                A.VerticalFlip(p=1),
+                A.HorizontalFlip(p=1),
+            ], p=1.0)
+        transform_list = [rotation,flip]
 
         transform_list = transform_both+transform_list
         if transform_list:
@@ -270,9 +280,9 @@ def TrainMapper(dataset_dict):
     image = detection_utils.read_image(dataset_dict['file_name'], format='BGR')
 
     transform_list = [
-        T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
-        T.RandomBrightness(0.8, 1.8),
-        T.RandomContrast(0.6, 1.3)
+       # T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
+       # T.RandomBrightness(0.8, 1.8),
+       # T.RandomContrast(0.6, 1.3)
     ]
     
     image, transforms = T.apply_transform_gens(transform_list, image)
