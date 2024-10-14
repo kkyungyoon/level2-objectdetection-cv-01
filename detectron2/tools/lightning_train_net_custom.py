@@ -286,8 +286,8 @@ def TrainMapper(dataset_dict):
 
     transform_list = [
        # T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
-       # T.RandomBrightness(0.8, 1.8),
-       # T.RandomContrast(0.6, 1.3)
+       T.RandomBrightness(0.8, 1.8),
+       T.RandomContrast(0.6, 1.3)
     ]
     
     image, transforms = T.apply_transform_gens(transform_list, image)
