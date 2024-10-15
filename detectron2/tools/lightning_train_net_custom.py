@@ -253,7 +253,7 @@ def AlbumentationTransform(img,anno,mode):
                     A.Rotate(limit=(270, 270), p=1),
                 ], p=1.0)
         flip = A.OneOf([
-                A.VerticalFlip(p=1),
+                A.NoOp(p=1),
                 A.HorizontalFlip(p=1),
             ], p=1.0)
         transform_list = [rotation,flip]
