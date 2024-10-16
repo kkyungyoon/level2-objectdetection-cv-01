@@ -5,25 +5,30 @@
 # Depending on how you launch the trainer, there are issues with processes terminating correctly
 # This module is still dependent on D2 logging, but could be transferred to use Lightning logging
 
+import copy
 import logging
 import os
 import time
-import copy
 import weakref
 from collections import OrderedDict
 from typing import Any, Dict, List
-import pytorch_lightning as pl  # type: ignore
-from pytorch_lightning import LightningDataModule, LightningModule
-import torch 
-
-import pandas as pd
 
 import albumentations as A
-
+import detectron2.data.transforms as T
 import detectron2.utils.comm as comm
+import pandas as pd
+import pytorch_lightning as pl  # type: ignore
+import torch
+from detectron2 import model_zoo
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import get_cfg
-from detectron2.data import build_detection_test_loader, build_detection_train_loader, detection_utils
+from detectron2.data import (
+    MetadataCatalog,
+    build_detection_test_loader,
+    build_detection_train_loader,
+    detection_utils,
+)
+from detectron2.data.datasets import register_coco_instances
 from detectron2.engine import (
     DefaultTrainer,
     SimpleTrainer,
@@ -32,16 +37,13 @@ from detectron2.engine import (
     default_writers,
     hooks,
 )
-from detectron2.evaluation import print_csv_format,COCOEvaluator
+from detectron2.evaluation import COCOEvaluator, print_csv_format
 from detectron2.evaluation.testing import flatten_results_dict
 from detectron2.modeling import build_model
 from detectron2.solver import build_lr_scheduler, build_optimizer
 from detectron2.utils.events import EventStorage
 from detectron2.utils.logger import setup_logger
-from detectron2.data.datasets import register_coco_instances
-from detectron2.data import MetadataCatalog
-from detectron2 import model_zoo
-import detectron2.data.transforms as T
+from pytorch_lightning import LightningDataModule, LightningModule
 
 # from train_net import build_evaluator
 
@@ -242,7 +244,9 @@ def AlbumentationTransform(img,anno,mode):
     #anno = list of dict [{'iscloud':0, 'bbox':[x0,y0,w,h], 'category_id':1, 'bbox_mode':1}]
 
     #트레인 테스트에 모두 적용되는 트랜스폼
-    transform_both = [A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=1)]
+    transform_both = [
+        #A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=1)
+        ]
 
     if mode == 'train':
         #트레인 데이터에만 적용되는 트랜스폼
@@ -286,8 +290,8 @@ def TrainMapper(dataset_dict):
 
     transform_list = [
        # T.RandomFlip(prob=0.5, horizontal=False, vertical=True),
-       T.RandomBrightness(0.8, 1.8),
-       T.RandomContrast(0.6, 1.3)
+       # T.RandomBrightness(0.8, 1.8),
+       # T.RandomContrast(0.6, 1.3)
     ]
     
     image, transforms = T.apply_transform_gens(transform_list, image)
