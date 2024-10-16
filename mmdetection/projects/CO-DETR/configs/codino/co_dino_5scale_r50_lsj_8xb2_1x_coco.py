@@ -10,7 +10,7 @@ num_classes = 10
 
 image_size = (1024, 1024)
 batch_augments = [
-    dict(type='BatchFixedSizePad', size=image_size, pad_mask=True)
+    dict(type='BatchFixedSizePad', size=image_size, pad_mask=False)
 ]
 model = dict(
     type='CoDETR',
@@ -26,7 +26,7 @@ model = dict(
         mean=[123.675, 116.28, 103.53],
         std=[58.395, 57.12, 57.375],
         bgr_to_rgb=True,
-        pad_mask=True,
+        pad_mask=False,
         batch_augments=batch_augments),
     backbone=dict(
         type='ResNet',
@@ -278,7 +278,7 @@ model = dict(
 # LSJ + CopyPaste
 load_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=False),
     dict(
         type='RandomResize',
         scale=image_size,
@@ -296,7 +296,7 @@ load_pipeline = [
 ]
 
 train_pipeline = [
-    dict(type='CopyPaste', max_num_pasted=100),
+    # dict(type='CopyPaste', max_num_pasted=100),
     dict(type='PackDetInputs')
 ]
 
@@ -312,7 +312,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=image_size, keep_ratio=True),  # diff
     dict(type='Pad', size=image_size, pad_val=dict(img=(114, 114, 114))),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=False),
     dict(
         type='PackDetInputs',
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
