@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-def create_prediction_dataframe(path):
+def create_prediction_dataframe(path,name_prefix=''):
     with open(path+'.bbox.json') as f:
         json_data = json.load(f)
 
@@ -13,7 +13,7 @@ def create_prediction_dataframe(path):
         y_max = y_min + height
         return [x_min, y_min, x_max, y_max]
 
-    df['image_id'] = df['image_id'].apply(lambda x: f"test/{x:04d}.jpeg")
+    df['image_id'] = df['image_id'].apply(lambda x: f"test/{x:04d}.jpg")
     df['bbox'] = df['bbox'].apply(coco_to_pascal)  # bbox 변환
 
     grouped = df.groupby('image_id')
@@ -34,5 +34,5 @@ def create_prediction_dataframe(path):
         'image_id': image_ids
     })
 
-    result[['PredictionString','image_id']].to_csv(path+'output.csv', index=False)
+    result[['PredictionString','image_id']].to_csv(path+name_prefix+'output.csv', index=False)
     return result[['PredictionString', 'image_id']]
