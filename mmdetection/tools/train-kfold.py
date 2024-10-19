@@ -12,6 +12,7 @@ from mmengine.runner import Runner
 from mmdet.utils import setup_cache_size_limit_of_dynamo
 from validation_split import split_and_save
 from json_to_csv import create_prediction_dataframe
+from ensenble import ensenble
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
@@ -116,13 +117,14 @@ def main():
     dir = split_and_save(n_splits, random_state)
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     base_work_dir = cfg.work_dir+'/'+time
+    output_list = []
     for i in range(n_splits):
         wandb.init()
         cfg.train_dataloader.dataset.ann_file = f'{dir}/train_fold-{i}.json'
         cfg.val_dataloader.dataset.ann_file = f'{dir}/val_fold-{i}.json'
         cfg.val_evaluator.ann_file = f'{cfg.val_dataloader.dataset.data_root}/{dir}/val_fold-{i}.json'
         cfg.work_dir = base_work_dir + f'/{i}-fold'
-        cfg.test_evaluator.outfile_prefix = cfg.work_dir
+        cfg.test_evaluator.outfile_prefix = cfg.work_dir +'/'
         # build the runner from config
         if 'runner_type' not in cfg:
             # build the default runner
@@ -134,10 +136,13 @@ def main():
         # start training
         runner.train()
         runner.test()
-
-        create_prediction_dataframe(cfg.test_evaluator.outfile_prefix)
-        
-
+        try:
+            output = create_prediction_dataframe(cfg.test_evaluator.outfile_prefix,name_prefix=f'{i}-fold')
+            output_list.append(output)
+        except:
+            pass
+    final_df = ensenble(output_list)
+    final_df.to_csv(base_work_dir+'/output.csv',index=False)
 
 if __name__ == '__main__':
     main()
