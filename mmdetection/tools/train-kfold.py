@@ -107,8 +107,8 @@ def main():
         cfg.resume = True
         cfg.load_from = args.resume
 
-    n_splits = 5
-    random_state = 411
+    n_splits = 10
+    random_state = 3232
     dir = split_and_save(n_splits, random_state)
     time = datetime.now().strftime("%Y%m%d_%H%M%S")
     base_work_dir = cfg.work_dir+'/'+time
