@@ -60,11 +60,6 @@ def parse_args():
 
     return args
 
-def json_to_csv(path):
-    with open(path) as f:
-        data = json.road(f)
-    
-
 def main():
     args = parse_args()
     
