@@ -320,7 +320,7 @@ test_pipeline = [
 ]
 
 val_dataloader = dict(dataset=dict(pipeline=test_pipeline))
-test_dataloader = val_dataloader
+# test_dataloader = val_dataloader
 
 optim_wrapper = dict(
     _delete_=True,
@@ -330,7 +330,7 @@ optim_wrapper = dict(
     paramwise_cfg=dict(custom_keys={'backbone': dict(lr_mult=0.1)}))
 
 val_evaluator = dict(metric='bbox')
-test_evaluator = val_evaluator
+# test_evaluator = val_evaluator
 
 max_epochs = 12
 train_cfg = dict(
@@ -357,3 +357,29 @@ log_processor = dict(by_epoch=True)
 # USER SHOULD NOT CHANGE ITS VALUES.
 # base_batch_size = (8 GPUs) x (2 samples per GPU)
 auto_scale_lr = dict(base_batch_size=16)
+
+
+
+data_root = '/data/ephemeral/home/dataset'
+dataset_type = 'CocoDataset'
+
+test_dataloader = dict(
+    batch_size=8,
+    num_workers=2,
+
+    persistent_workers=True,
+    drop_last=False,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + '/test.json',
+        data_prefix=dict(img='./'),
+        test_mode=True,
+        pipeline=test_pipeline))
+test_evaluator = dict(
+    type='CocoMetric',
+    metric='bbox',
+    format_only=True,
+    ann_file=data_root + '/test.json',
+    outfile_prefix='./work_dirs/coco_detection/test')

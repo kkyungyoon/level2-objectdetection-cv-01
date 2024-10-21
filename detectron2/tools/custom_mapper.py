@@ -110,8 +110,9 @@ class CustomTrainMapper:
 
         
         self.A_transform = A.Compose(
-            [A.ElasticTransform(p=0.5, alpha=120, sigma=120 * 0.05, alpha_affine=120 * 0.03),
-            # A.VerticalFlip(p=0.5),  # Detectron2의 RandomFlip 대체 (vertical flip)
+            [
+            # A.ElasticTransform(p=0.5, alpha=120, sigma=120 * 0.05, alpha_affine=120 * 0.03),
+            A.VerticalFlip(p=0.5),  # Detectron2의 RandomFlip 대체 (vertical flip)
             # A.RandomBrightnessContrast(brightness_limit=(0.8, 1.8), contrast_limit=(0.6, 1.3), p=1.0)  # 밝기 및 대비 변환
              ],
             bbox_params=A.BboxParams(format='coco', label_fields=['category_ids'])

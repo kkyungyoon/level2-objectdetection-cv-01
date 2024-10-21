@@ -15,7 +15,7 @@ from ..poolers import ROIPooler
 from .box_head import build_box_head
 from .fast_rcnn import FastRCNNOutputLayers, fast_rcnn_inference
 from .roi_heads import ROI_HEADS_REGISTRY, StandardROIHeads
-
+from detectron2.layers import cat, nonzero_tuple, ciou_loss
 
 class _ScaleGradient(Function):
     @staticmethod
@@ -43,6 +43,7 @@ class CascadeROIHeads(StandardROIHeads):
         box_heads: List[nn.Module],
         box_predictors: List[nn.Module],
         proposal_matchers: List[Matcher],
+        # use_contrasive_loss: bool,
         **kwargs,
     ):
         """
@@ -76,6 +77,11 @@ class CascadeROIHeads(StandardROIHeads):
             **kwargs,
         )
         self.proposal_matchers = proposal_matchers
+
+        self.use_contrasive_loss = True
+        if self.use_contrasive_loss:
+            self.contrasive_feature_mem = torch.zeros(0).cuda()
+            self.queue_size = 100
 
     @classmethod
     def from_config(cls, cfg, input_shape):
@@ -149,6 +155,19 @@ class CascadeROIHeads(StandardROIHeads):
             pred_instances = self._forward_box(features, proposals)
             pred_instances = self.forward_with_given_boxes(features, pred_instances)
             return pred_instances, {}
+        
+    def l2_norm(self,input,axis=1):
+        norm = torch.norm(input,2,axis,True)
+        output = torch.div(input, norm)
+        return output
+    
+    def update_mem(self,feature):
+        self.contrasive_feature_mem = torch.cat([feature,self.contrasive_feature_mem],dim=0)
+        over_size = self.contrasive_feature_mem.shape[0] - self.queue_size
+
+        if over_size > 0:
+            self.contrasive_feature_mem = self.contrasive_feature_mem[over_size:]
+
 
     def _forward_box(self, features, proposals, targets=None):
         """
@@ -174,9 +193,62 @@ class CascadeROIHeads(StandardROIHeads):
             predictions = self._run_stage(features, proposals, k)
             prev_pred_boxes = self.box_predictor[k].predict_boxes(predictions, proposals)
             head_outputs.append((self.box_predictor[k], predictions, proposals))
+        
+
+        contrasive_loss = None 
+        if self.use_contrasive_loss and self.training:
+            
+            box_features = self.box_pooler(features, [x.proposal_boxes for x in proposals])
+            scores, proposal_deltas = predictions
+            proposal_boxes = cat([p.proposal_boxes.tensor for p in proposals], dim=0) 
+            
+            gt_classes = (
+                cat([p.gt_classes for p in proposals], dim=0) if len(proposals) else torch.empty(0)
+            )
+            gt_boxes = cat(
+            [(p.gt_boxes if p.has("gt_boxes") else p.proposal_boxes).tensor for p in proposals],
+            dim=0,
+            )
+
+            # fg_inds = nonzero_tuple((gt_classes >= 0) & (gt_classes < 10))[0] #TODO hard coding 
+            fg_inds = nonzero_tuple((gt_classes == 0))[0] #TODO hard coding fg...? only class 0 
+
+            fg_pred_deltas = proposal_deltas[fg_inds]
+            ### contrasive 
+
+            pred_boxes = [
+            self.box_predictor[-1].box2box_transform.apply_deltas(k, cat([proposal_boxes[fg_inds]])) for k in cat([fg_pred_deltas.unsqueeze(0)], dim=1)
+            ]
+        
+
+            loss_box_reg = ciou_loss(
+                torch.stack(pred_boxes), torch.stack([gt_boxes[fg_inds]]), reduction=None
+            )
+
+            contrast_id = nonzero_tuple((loss_box_reg.squeeze() < 0.2))[0] #TODO hyperparam 
+            
+            fg_box_features = box_features[fg_inds][contrast_id]  # class box feature that ciou_loss < thresh
+            
+            # print(fg_box_features.shape[0])
+            if fg_box_features.shape[0] !=0:
+                # fg_box_features = fg_box_features.reshape(fg_box_features.shape[0], -1)
+                fg_box_features = fg_box_features.mean(dim=[2,3])
+                normalized_box_feature = self.l2_norm(fg_box_features)
+
+                with torch.no_grad():
+                    self.update_mem(normalized_box_feature)
+
+                if self.contrasive_feature_mem.shape[0] > 0:
+                    pair_cos_sim = torch.einsum('bi,ki->bk', normalized_box_feature, self.contrasive_feature_mem)
+                    contrasive_loss = 0.05*torch.clip((1 - pair_cos_sim)/2,0,1).sum()
+
 
         if self.training:
             losses = {}
+            # print("???")
+            if contrasive_loss:
+                losses.update({"contrasive_loss":contrasive_loss})
+                # print(losses)
             storage = get_event_storage()
             for stage, (predictor, predictions, proposals) in enumerate(head_outputs):
                 with storage.name_scope("stage{}".format(stage)):

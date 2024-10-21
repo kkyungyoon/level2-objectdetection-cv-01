@@ -126,11 +126,11 @@ def do_train(args, cfg):
 def main(args):
 
     try:
-        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/train_80.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+        register_coco_instances('coco_trash_train', {}, '/data/ephemeral/home/dataset/train_80.json', '/data/ephemeral/home/dataset')
     except AssertionError:
         pass
     try:
-        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset/val_20.json', '/data/ephemeral/home/level2-objectdetection-cv-01/detectron2/dataset')
+        register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/dataset/val_20.json', '/data/ephemeral/home/dataset')
     except AssertionError:
         pass
 
