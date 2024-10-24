@@ -218,3 +218,11 @@ cython_debug/
 #.idea/
 *.csv
 test
+
+ultralytics_dataset/
+Ultralytics/
+wandb/
+results/*.csv
+dataset_yaml/
+cropped_images_grid_with_labels/
+runs/
