@@ -28,3 +28,4 @@ dataloader.train.total_batch_size = 3
 dataloader.test.mapper.augmentations = [
     L(T.ResizeShortestEdge)(short_edge_length=image_size, max_size=image_size),
 ]
+dataloader.test.mapper.image_format = "RGB"

@@ -131,9 +131,10 @@ def main(args):
         pass
     try:
         register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/dataset/val_20.json', '/data/ephemeral/home/dataset')
+        # register_coco_instances('coco_trash_test', {}, '/data/ephemeral/home/dataset/val_20.json', '/data/ephemeral/home/dataset')
+
     except AssertionError:
         pass
-
 
     MetadataCatalog.get('coco_trash_train').thing_classes = ["General trash", "Paper", "Paper pack", "Metal", 
                                                             "Glass", "Plastic", "Styrofoam", "Plastic bag", "Battery", "Clothing"]

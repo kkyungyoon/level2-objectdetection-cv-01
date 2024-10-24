@@ -81,7 +81,8 @@ class CascadeROIHeads(StandardROIHeads):
         self.use_contrasive_loss = True
         if self.use_contrasive_loss:
             self.contrasive_feature_mem = torch.zeros(0).cuda()
-            self.queue_size = 100
+            self.contrasive_label_mem = torch.zeros(0).cuda()
+            self.queue_size = 300
 
     @classmethod
     def from_config(cls, cfg, input_shape):
@@ -161,12 +162,15 @@ class CascadeROIHeads(StandardROIHeads):
         output = torch.div(input, norm)
         return output
     
-    def update_mem(self,feature):
+    def update_mem(self,feature,labels):
         self.contrasive_feature_mem = torch.cat([feature,self.contrasive_feature_mem],dim=0)
+        self.contrasive_label_mem = torch.cat([labels,self.contrasive_label_mem],dim=0)
+        
         over_size = self.contrasive_feature_mem.shape[0] - self.queue_size
 
         if over_size > 0:
             self.contrasive_feature_mem = self.contrasive_feature_mem[over_size:]
+            self.contrasive_label_mem = self.contrasive_label_mem[over_size:]
 
 
     def _forward_box(self, features, proposals, targets=None):
@@ -211,7 +215,10 @@ class CascadeROIHeads(StandardROIHeads):
             )
 
             # fg_inds = nonzero_tuple((gt_classes >= 0) & (gt_classes < 10))[0] #TODO hard coding 
-            fg_inds = nonzero_tuple((gt_classes == 0))[0] #TODO hard coding fg...? only class 0 
+            # fg_inds = nonzero_tuple((gt_classes == 0))[0] #TODO hard coding fg...? only class 0 
+            
+            fg_inds = nonzero_tuple((gt_classes >= 0) & (gt_classes < 10))[0]   
+
 
             fg_pred_deltas = proposal_deltas[fg_inds]
             ### contrasive 
@@ -219,7 +226,6 @@ class CascadeROIHeads(StandardROIHeads):
             pred_boxes = [
             self.box_predictor[-1].box2box_transform.apply_deltas(k, cat([proposal_boxes[fg_inds]])) for k in cat([fg_pred_deltas.unsqueeze(0)], dim=1)
             ]
-        
 
             loss_box_reg = ciou_loss(
                 torch.stack(pred_boxes), torch.stack([gt_boxes[fg_inds]]), reduction=None
@@ -228,7 +234,9 @@ class CascadeROIHeads(StandardROIHeads):
             contrast_id = nonzero_tuple((loss_box_reg.squeeze() < 0.2))[0] #TODO hyperparam 
             
             fg_box_features = box_features[fg_inds][contrast_id]  # class box feature that ciou_loss < thresh
-            
+            fg_labels = gt_classes[fg_inds][contrast_id]
+            # print("????????????????????????????", fg_labels.shape)
+
             # print(fg_box_features.shape[0])
             if fg_box_features.shape[0] !=0:
                 # fg_box_features = fg_box_features.reshape(fg_box_features.shape[0], -1)
@@ -236,11 +244,22 @@ class CascadeROIHeads(StandardROIHeads):
                 normalized_box_feature = self.l2_norm(fg_box_features)
 
                 with torch.no_grad():
-                    self.update_mem(normalized_box_feature)
+                    self.update_mem(normalized_box_feature,fg_labels)
+
+                    mask = (fg_labels.unsqueeze(1) == self.contrasive_label_mem.unsqueeze(0)).float()
+                    # mask = mask - torch.eye(mask.size(0)).to(mask.device)
+
 
                 if self.contrasive_feature_mem.shape[0] > 0:
                     pair_cos_sim = torch.einsum('bi,ki->bk', normalized_box_feature, self.contrasive_feature_mem)
-                    contrasive_loss = 0.05*torch.clip((1 - pair_cos_sim)/2,0,1).sum()
+                    
+                    # print(pair_cos_sim.shape,"paricossim")
+                    # print(mask.shape,"mask")
+                    
+                    pair_cos_sim = mask*pair_cos_sim
+                    neg_cos_sim = (1-mask)*pair_cos_sim
+                    contrasive_loss = 0.5*torch.clip((1 - pair_cos_sim)/2,0,1).mean()
+                    contrasive_loss = contrasive_loss + 0.5*torch.clip((neg_cos_sim)/2,0,1).mean()
 
 
         if self.training:
