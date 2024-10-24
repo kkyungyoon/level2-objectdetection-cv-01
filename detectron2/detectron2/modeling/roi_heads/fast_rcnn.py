@@ -197,6 +197,7 @@ class FastRCNNOutputLayers(nn.Module):
         use_sigmoid_ce: bool = False,
         get_fed_loss_cls_weights: Optional[Callable] = None,
         fed_loss_num_classes: int = 50,
+        use_contrasive_loss: bool = True 
     ):
         """
         NOTE: this interface is experimental.
@@ -256,6 +257,9 @@ class FastRCNNOutputLayers(nn.Module):
         self.use_sigmoid_ce = use_sigmoid_ce
         self.fed_loss_num_classes = fed_loss_num_classes
 
+        ##TODO 
+        self.use_contrasive_loss = use_contrasive_loss
+
         if self.use_fed_loss:
             assert self.use_sigmoid_ce, "Please use sigmoid cross entropy loss with federated loss"
             fed_loss_cls_weights = get_fed_loss_cls_weights()
@@ -282,6 +286,7 @@ class FastRCNNOutputLayers(nn.Module):
             "use_sigmoid_ce"            : cfg.MODEL.ROI_BOX_HEAD.USE_SIGMOID_CE,
             "get_fed_loss_cls_weights"  : lambda: get_fed_loss_cls_weights(dataset_names=cfg.DATASETS.TRAIN, freq_weight_power=cfg.MODEL.ROI_BOX_HEAD.FED_LOSS_FREQ_WEIGHT_POWER),  # noqa
             "fed_loss_num_classes"      : cfg.MODEL.ROI_BOX_HEAD.FED_LOSS_NUM_CLASSES,
+            # "fed_loss_num_classes"      : cfg.MODEL.ROI_BOX_HEAD.FED_LOSS_NUM_CLASSES,
             # fmt: on
         }
 
@@ -342,6 +347,29 @@ class FastRCNNOutputLayers(nn.Module):
             loss_cls = self.sigmoid_cross_entropy_loss(scores, gt_classes)
         else:
             loss_cls = cross_entropy(scores, gt_classes, reduction="mean")
+        
+        ###########TODO
+        # if self.use_contrasive_loss:
+        #     box_dim = proposal_boxes.shape[1]  # 4 or 5
+        #     # Regression loss is only computed for foreground proposals (those matched to a GT)
+        #     fg_inds = nonzero_tuple((gt_classes >= 0) & (gt_classes < self.num_classes))[0]
+        #     if pred_deltas.shape[1] == box_dim:  # cls-agnostic regression
+        #         fg_pred_deltas = pred_deltas[fg_inds]
+        #     else:
+        #         fg_pred_deltas = pred_deltas.view(-1, self.num_classes, box_dim)[
+        #             fg_inds, gt_classes[fg_inds]
+        #         ]
+
+        #     loss_box_reg = _dense_box_regression_loss(
+        #         [proposal_boxes[fg_inds]],
+        #         self.box2box_transform,
+        #         [fg_pred_deltas.unsqueeze(0)],
+        #         [gt_boxes[fg_inds]],
+        #         ...,
+        #         self.box_reg_loss_type,
+        #         self.smooth_l1_beta,
+        #     )
+
 
         losses = {
             "loss_cls": loss_cls,

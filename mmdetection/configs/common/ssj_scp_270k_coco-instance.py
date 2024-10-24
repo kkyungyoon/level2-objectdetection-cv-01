@@ -1,7 +1,7 @@
 _base_ = 'ssj_270k_coco-instance.py'
 # dataset settings
 dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
+data_root = '/data/ephemeral/home/dataset'
 
 image_size = (1024, 1024)
 
@@ -24,7 +24,7 @@ backend_args = None
 # with a resize range of 0.8 to 1.25 of the original image size.
 load_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True),
     dict(
         type='RandomResize',
         scale=image_size,
@@ -52,8 +52,8 @@ train_dataloader = dict(
         dataset=dict(
             type=dataset_type,
             data_root=data_root,
-            ann_file='annotations/instances_train2017.json',
-            data_prefix=dict(img='train2017/'),
+            ann_file='train_80.json',
+            data_prefix=dict(img='./'),
             filter_cfg=dict(filter_empty_gt=True, min_size=32),
             pipeline=load_pipeline,
             backend_args=backend_args),

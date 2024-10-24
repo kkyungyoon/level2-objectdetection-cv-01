@@ -10,7 +10,7 @@ num_classes = 10
 
 image_size = (1024, 1024)
 batch_augments = [
-    dict(type='BatchFixedSizePad', size=image_size, pad_mask=True)
+    dict(type='BatchFixedSizePad', size=image_size, pad_mask=False)
 ]
 model = dict(
     type='CoDETR',
@@ -26,7 +26,7 @@ model = dict(
         mean=[123.675, 116.28, 103.53],
         std=[58.395, 57.12, 57.375],
         bgr_to_rgb=True,
-        pad_mask=True,
+        pad_mask=False,
         batch_augments=batch_augments),
     backbone=dict(
         type='ResNet',
@@ -278,7 +278,7 @@ model = dict(
 # LSJ + CopyPaste
 load_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=False),
     dict(
         type='RandomResize',
         scale=image_size,
@@ -296,7 +296,7 @@ load_pipeline = [
 ]
 
 train_pipeline = [
-    dict(type='CopyPaste', max_num_pasted=100),
+    # dict(type='CopyPaste', max_num_pasted=100),
     dict(type='PackDetInputs')
 ]
 
@@ -312,7 +312,7 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='Resize', scale=image_size, keep_ratio=True),  # diff
     dict(type='Pad', size=image_size, pad_val=dict(img=(114, 114, 114))),
-    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=False),
     dict(
         type='PackDetInputs',
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
@@ -320,7 +320,7 @@ test_pipeline = [
 ]
 
 val_dataloader = dict(dataset=dict(pipeline=test_pipeline))
-test_dataloader = val_dataloader
+# test_dataloader = val_dataloader
 
 optim_wrapper = dict(
     _delete_=True,
@@ -330,7 +330,7 @@ optim_wrapper = dict(
     paramwise_cfg=dict(custom_keys={'backbone': dict(lr_mult=0.1)}))
 
 val_evaluator = dict(metric='bbox')
-test_evaluator = val_evaluator
+# test_evaluator = val_evaluator
 
 max_epochs = 12
 train_cfg = dict(
@@ -357,3 +357,29 @@ log_processor = dict(by_epoch=True)
 # USER SHOULD NOT CHANGE ITS VALUES.
 # base_batch_size = (8 GPUs) x (2 samples per GPU)
 auto_scale_lr = dict(base_batch_size=16)
+
+
+
+data_root = '/data/ephemeral/home/dataset'
+dataset_type = 'CocoDataset'
+
+test_dataloader = dict(
+    batch_size=8,
+    num_workers=2,
+
+    persistent_workers=True,
+    drop_last=False,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + '/test.json',
+        data_prefix=dict(img='./'),
+        test_mode=True,
+        pipeline=test_pipeline))
+test_evaluator = dict(
+    type='CocoMetric',
+    metric='bbox',
+    format_only=True,
+    ann_file=data_root + '/test.json',
+    outfile_prefix='./work_dirs/coco_detection/test')
