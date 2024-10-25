@@ -443,10 +443,10 @@ class LoadAnnotations(MMCV_LoadAnnotations):
             self._load_bboxes(results)
         if self.with_label:
             self._load_labels(results)
-        if self.with_mask:
-            self._load_masks(results)
-        if self.with_seg:
-            self._load_seg_map(results)
+        # if self.with_mask:
+        #     self._load_masks(results)
+        # if self.with_seg:
+        #     self._load_seg_map(results)
         return results
 
     def __repr__(self) -> str:
@@ -581,8 +581,6 @@ class LoadPanopticAnnotations(LoadAnnotations):
             with_mask=with_mask,
             with_seg=with_seg,
             with_keypoints=False,
-            box_type=box_type,
-            imdecode_backend=imdecode_backend,
             backend_args=backend_args)
 
     def _load_masks_and_semantic_segs(self, results: dict) -> None:
@@ -639,10 +637,10 @@ class LoadPanopticAnnotations(LoadAnnotations):
             self._load_bboxes(results)
         if self.with_label:
             self._load_labels(results)
-        if self.with_mask or self.with_seg:
-            # The tasks completed by '_load_masks' and '_load_semantic_segs'
-            # in LoadAnnotations are merged to one function.
-            self._load_masks_and_semantic_segs(results)
+        # if self.with_mask or self.with_seg: TODO?
+        #     # The tasks completed by '_load_masks' and '_load_semantic_segs'
+        #     # in LoadAnnotations are merged to one function.
+        #     self._load_masks_and_semantic_segs(results)
 
         return results
 

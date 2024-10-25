@@ -5,7 +5,7 @@ from torch import Tensor
 from typing import Optional
 
 
-def size_weighted_loss(pred_bboxes: Tensor, gt_bboxes: Tensor, small_threshold=50*50, medium_threshold=150*150) -> Tensor:
+def size_weighted_loss(pred_bboxes: Tensor, gt_bboxes: Tensor, small_threshold=32*32, medium_threshold=96*96) -> Tensor:
 
     epsilon = 1e-6
     widths = torch.clamp(gt_bboxes[:, 2], min=epsilon)
@@ -25,8 +25,8 @@ def size_weighted_loss(pred_bboxes: Tensor, gt_bboxes: Tensor, small_threshold=5
 class SizeWeightedLoss(nn.Module):
     def __init__(self, 
                  base_loss_fn: size_weighted_loss, 
-                 small_threshold: int = 50*50, 
-                 medium_threshold: int = 150*150, 
+                 small_threshold: int = 32*32, 
+                 medium_threshold: int = 96*96, 
                  reduction: str = 'mean', 
                  ) -> None:
         super(SizeWeightedLoss, self).__init__()
