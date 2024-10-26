@@ -217,4 +217,12 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 *.csv
-test.*
+test
+
+ultralytics_dataset/
+Ultralytics/
+wandb/
+results/*.csv
+dataset_yaml/
+cropped_images_grid_with_labels/
+runs/
