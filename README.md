@@ -90,9 +90,9 @@ Each image in the dataset is annotated with bounding boxes for these categories 
       python tools/train.py configs/faster_rcnn/faster-rcnn_r50_fpn_1x_coco.py
       ```
   - To test the model, run the following command:
-  ```bash
+    ```bash
       python tools/test.py --work-dir "save/dir" "path/pth"
-  ```
+    ```
   ### Additional Settings
 
   - see`mmdetection/configs/` to adjust various training and model parameters
@@ -103,8 +103,7 @@ Each image in the dataset is annotated with bounding boxes for these categories 
 
   ### Data Preprocessing
 
-  - **Data Augmentation**  
-    Use OpenCV and `TransformSelector` class for data augmentation, as shown in the MMDetection section.
+  - please refer to the configuration file in detectron2/configs for details.
 
   ### Model Architecture
 
@@ -114,12 +113,8 @@ Each image in the dataset is annotated with bounding boxes for these categories 
 
   - Run the following command to train and test the model:
       ```bash
-      python train_net.py --config-file configs/your_config.yaml
+      python lightning_train_net_custom.py --config-file ../configs/COCO-Detection/faster_rcnn_R_101_FPN_3x_TRASH.yaml --num-gpus 1
       ```
-
-  ### Additional Settings
-
-  - Customize parameters in `config.yaml` similar to MMDetection for control over model training and architecture.
 
 </details>
 
