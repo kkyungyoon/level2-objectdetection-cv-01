@@ -1,28 +1,28 @@
 # BoostCamp AI Tech 7th CV-01 Project
 
 ## Team Members
-<div style="display: flex; justify-content: space-around;">
-    <div style="text-align: center;">
+<div style="display: flex; justify-content: space-around; flex-wrap: nowrap;">
+    <div style="text-align: center; margin: 5px;">
         <img src="https://github.com/user-attachments/assets/7d2414bd-dadf-48f0-a315-a5921d3d52fa" width="100" height="100" />
         <p><strong>동준</strong></p>
     </div>
-    <div style="text-align: center;">
+    <div style="text-align: center; margin: 5px;">
         <img src="https://github.com/user-attachments/assets/7f9949f9-703a-4e42-bd1b-5a5683ed24d2" width="100" height="100" />
         <p><strong>경윤</strong></p>
     </div>
-    <div style="text-align: center;">
+    <div style="text-align: center; margin: 5px;">
         <img src="https://github.com/user-attachments/assets/b94ec0ce-873d-4fe0-b9d3-7fe6a3b37163" width="100" height="100" />
         <p><strong>영석</strong></p>
     </div>
-    <div style="text-align: center;">
+    <div style="text-align: center; margin: 5px;">
         <img src="https://github.com/user-attachments/assets/fd845c5d-08a1-4d92-950e-c54d3812662d" width="100" height="100" />
         <p><strong>태영</strong></p>
     </div>
-    <div style="text-align: center;">
+    <div style="text-align: center; margin: 5px;">
         <img src="https://github.com/user-attachments/assets/be384c7a-b7ea-4ce0-b1a1-7da4e8a9b6e5" width="100" height="100" />
         <p><strong>태성</strong></p>
     </div>
-    <div style="text-align: center;">
+    <div style="text-align: center; margin: 5px;">
         <img src="https://github.com/user-attachments/assets/ac1ddf74-ccdb-4170-869e-74177ca00633" width="100" height="100" />
         <p><strong>세린</strong></p>
     </div>
