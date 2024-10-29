@@ -81,72 +81,21 @@ Each image in the dataset is annotated with bounding boxes for these categories 
 <details>
   <summary id="mmdetection">MMDetection</summary>
 
-  ### Data Preprocessing
-
-  - **Data Augmentation using OpenCV**  
-    Augmentation methods that cannot be handled by `[Torchvision.transforms](https://pytorch.org/vision/0.9/transforms.html)` or `[Albumentations.Transforms](https://albumentations.ai/docs/getting_started/transforms_and_targets/)` are performed using OpenCV. The augmented data is then added to the data folder.
-
-  - **Data Augmentation using Transform**  
-    Modify the `TransformSelector` class in `select_transforms.py` as follows:
-      
-      ```python
-      class TransformSelector:
-          """
-          Class for selecting the image transformation library.
-          """
-          def __init__(self, transform_type: str):
-              if transform_type in ["torchvision", "albumentations"]:
-                  self.transform_type = transform_type
-              else:
-                  raise ValueError("Unknown transformation library specified.")
-
-          def get_transform(self, is_train: bool):
-              if self.transform_type == 'torchvision':
-                  transform = TorchvisionTransform(is_train=is_train)
-              elif self.transform_type == 'albumentations':
-                  transform = AlbumentationsTransform(is_train=is_train)
-              
-              return transform
-      ```
-
-  ### Model Architecture
-
-  - You can use pre-built models from the `timm` library or `torchvision`. To customize, create new models under the `backbone` folder and modify them as needed.
-
+  ### Data Preprocessing and Model Architecture
+ - please refer to the configuration file in mmDetection/configs for details.
   ### Train & Test
 
-  - To train and test the model, run the following command:
+  - To train the model, run the following command:
       ```bash
-      python main.py
+      python tools/train.py configs/faster_rcnn/faster-rcnn_r50_fpn_1x_coco.py
       ```
-
+  - To test the model, run the following command:
+  ```bash
+      python tools/test.py --work-dir "save/dir" "path/pth"
+      ```
   ### Additional Settings
 
-  - Modify `config.yaml` to adjust various training and model parameters:
-      
-      ```yaml
-      exp_name: test
-      batch_size: 128
-      epochs: 1
-      learning_rate: 0.01
-      gpus: 0
-      model_type: timm
-      model_name: resnet18
-      pretrained: False
-      train_data_dir: ./data/train
-      test_data_dir: ./data/test
-      base_output_dir: ./result
-      num_classes: 500
-      use_wandb: True
-      data_name: base
-      num_workers: 1
-      optim: Adam
-      loss: CE
-      transform_name: torchvision
-      traindata_info_file: ./data/train.csv
-      testdata_info_file: ./data/test.csv
-      ```
-
+  - see`mmdetection/configs/` to adjust various training and model parameters
 </details>
 
 <details>
