@@ -1,11 +1,32 @@
 # BoostCamp AI Tech 7th CV-01 Project
 
 ## Team Members
-
-| ![동준](https://github.com/user-attachments/assets/7d2414bd-dadf-48f0-a315-a5921d3d52fa) | ![경윤](https://github.com/user-attachments/assets/7f9949f9-703a-4e42-bd1b-5a5683ed24d2) | ![영석](https://github.com/user-attachments/assets/b94ec0ce-873d-4fe0-b9d3-7fe6a3b37163) | ![태영](https://github.com/user-attachments/assets/fd845c5d-08a1-4d92-950e-c54d3812662d) | ![태성](https://github.com/user-attachments/assets/be384c7a-b7ea-4ce0-b1a1-7da4e8a9b6e5) | ![세린](https://github.com/user-attachments/assets/ac1ddf74-ccdb-4170-869e-74177ca00633) |
-|:----------------------------------------------------------:|:----------------------------------------------------------:|:----------------------------------------------------------:|:----------------------------------------------------------:|:----------------------------------------------------------:|:----------------------------------------------------------:|
-| **동준**                                                     | **경윤**                                                      | **영석**                                                      | **태영**                                                      | **태성**                                                      | **세린**                                                      |
-
+<div style="display: flex; justify-content: space-around;">
+    <div style="text-align: center;">
+        <img src="https://github.com/user-attachments/assets/7d2414bd-dadf-48f0-a315-a5921d3d52fa" width="100" height="100" />
+        <p><strong>동준</strong></p>
+    </div>
+    <div style="text-align: center;">
+        <img src="https://github.com/user-attachments/assets/7f9949f9-703a-4e42-bd1b-5a5683ed24d2" width="100" height="100" />
+        <p><strong>경윤</strong></p>
+    </div>
+    <div style="text-align: center;">
+        <img src="https://github.com/user-attachments/assets/b94ec0ce-873d-4fe0-b9d3-7fe6a3b37163" width="100" height="100" />
+        <p><strong>영석</strong></p>
+    </div>
+    <div style="text-align: center;">
+        <img src="https://github.com/user-attachments/assets/fd845c5d-08a1-4d92-950e-c54d3812662d" width="100" height="100" />
+        <p><strong>태영</strong></p>
+    </div>
+    <div style="text-align: center;">
+        <img src="https://github.com/user-attachments/assets/be384c7a-b7ea-4ce0-b1a1-7da4e8a9b6e5" width="100" height="100" />
+        <p><strong>태성</strong></p>
+    </div>
+    <div style="text-align: center;">
+        <img src="https://github.com/user-attachments/assets/ac1ddf74-ccdb-4170-869e-74177ca00633" width="100" height="100" />
+        <p><strong>세린</strong></p>
+    </div>
+</div>
 
 ## Contribute
 
@@ -55,12 +76,26 @@ Each image in the dataset is annotated with bounding boxes for these categories 
 
 ## Results
 
-| ![result1](https://github.com/user-attachments/assets/431726a1-bf6c-4ff1-8096-3753a49469cd) | ![result2](https://github.com/user-attachments/assets/559bd795-3ff7-4d8a-afe8-53588c244b63)
- |
-|---------------------------------|---------------------------------|
-| <img width="619" alt="result3" src="https://github.com/user-attachments/assets/edd341ae-72bc-486c-83ef-50697e075214"> | ![result4](https://github.com/user-attachments/assets/6cf9891d-5646-4f3f-9852-542199bf8338) |
-| ![result5](https://github.com/user-attachments/assets/5cf5c523-3fd2-4add-bab9-cca201e0b3a9) | 
-![result6](https://github.com/user-attachments/assets/32548ac5-55f4-4d99-a9e0-88bf0c38687d) |
+<div style="display: flex; flex-direction: column; align-items: center;">
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://github.com/user-attachments/assets/431726a1-bf6c-4ff1-8096-3753a49469cd" width="500" />
+    </div>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://github.com/user-attachments/assets/559bd795-3ff7-4d8a-afe8-53588c244b63" width="500" />
+    </div>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://github.com/user-attachments/assets/edd341ae-72bc-486c-83ef-50697e075214" width="500" />
+    </div>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://github.com/user-attachments/assets/6cf9891d-5646-4f3f-9852-542199bf8338" width="500" />
+    </div>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://github.com/user-attachments/assets/5cf5c523-3fd2-4add-bab9-cca201e0b3a9" width="500" />
+    </div>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <img src="https://github.com/user-attachments/assets/32548ac5-55f4-4d99-a9e0-88bf0c38687d" width="500" />
+    </div>
+</div>
 
 
 
