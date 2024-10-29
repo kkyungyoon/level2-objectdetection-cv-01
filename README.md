@@ -47,7 +47,7 @@ Each image in the dataset is annotated with bounding boxes for these categories 
 |--------------------|------------------------------------|--------------------|------------------------|
 | **Hardware**       | GPU: V100 32GB × 4                | **Python**         | 3.10                   |
 | **CUDA**           | 11.6                              | **PyTorch**        | 1.12                   |
-| **PyTorch Lightning** | 1.8                           | **Libraries**      | MMDetection, Detectron2, Ultralytics(8.3.23) |
+| **PyTorch Lightning** | 1.8                           | **Libraries**      | MMDetection(3.3.0), Detectron2(0.6), Ultralytics(8.3.23) |
 | **Collaboration Tools** | Notion, WandB               |                   |                        |
 
 
