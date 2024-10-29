@@ -92,7 +92,7 @@ Each image in the dataset is annotated with bounding boxes for these categories 
   - To test the model, run the following command:
   ```bash
       python tools/test.py --work-dir "save/dir" "path/pth"
-      ```
+  ```
   ### Additional Settings
 
   - see`mmdetection/configs/` to adjust various training and model parameters
